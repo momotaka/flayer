@@ -38,7 +38,17 @@ try {
 }
 
 // POSTデータを取得
-$input = json_decode(file_get_contents('php://input'), true);
+$rawInput = file_get_contents('php://input');
+$input = json_decode($rawInput, true);
+
+if (json_last_error() !== JSON_ERROR_NONE) {
+    http_response_code(400);
+    echo json_encode([
+        'error' => 'JSONデコードエラー: ' . json_last_error_msg(),
+        'raw_input' => substr($rawInput, 0, 100) . '...'
+    ]);
+    exit;
+}
 
 if (!isset($input['message']) || !isset($input['context'])) {
     http_response_code(400);
@@ -95,14 +105,28 @@ if (strpos($config['api_endpoint'], 'openai.com') !== false) {
         'Content-Type: application/json',
         'Authorization: Bearer ' . $config['api_key']
     ]);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
     
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
+    
+    if ($curlError) {
+        http_response_code(500);
+        echo json_encode(['error' => 'cURL エラー: ' . $curlError]);
+        exit;
+    }
     
     if ($httpCode !== 200) {
         http_response_code(500);
-        echo json_encode(['error' => 'API通信エラー: ' . $response]);
+        $errorData = json_decode($response, true);
+        echo json_encode([
+            'error' => 'API通信エラー (HTTP ' . $httpCode . ')',
+            'details' => $errorData['error']['message'] ?? $response,
+            'model' => $config['api_model']
+        ]);
         exit;
     }
     
