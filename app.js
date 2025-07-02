@@ -210,7 +210,14 @@ class FlyerChatBot {
             
         } catch (error) {
             console.error('AI通信エラー:', error);
-            this.addMessage('エラーが発生しました: ' + error.message, 'bot');
+            let errorMessage = 'エラーが発生しました: ' + error.message;
+            
+            // より親切なエラーメッセージ
+            if (error.message.includes('.env')) {
+                errorMessage = 'APIの設定が必要です。\n\n1. .env.exampleを.envにコピー\n2. APIキー、モデル名、エンドポイントを設定\n3. ページを再読み込み';
+            }
+            
+            this.addMessage(errorMessage, 'bot');
             this.isProcessing = false;
             this.toggleInput(true);
         }

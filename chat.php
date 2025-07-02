@@ -4,8 +4,20 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// 設定を読み込む
-$config = require_once 'config.php';
+// エラーハンドリング
+try {
+    // .envファイルの存在確認
+    if (!file_exists('.env')) {
+        throw new Exception('.envファイルが見つかりません。.env.exampleをコピーして.envを作成し、APIキーを設定してください。');
+    }
+    
+    // 設定を読み込む
+    $config = require 'config.php';
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['error' => $e->getMessage()]);
+    exit;
+}
 
 // POSTデータを取得
 $input = json_decode(file_get_contents('php://input'), true);
