@@ -220,6 +220,10 @@ class FlyerChatBot {
             // より親切なエラーメッセージ
             if (error.message.includes('.env')) {
                 errorMessage = 'APIの設定が必要です。\n\n1. .env.exampleを.envにコピー\n2. APIキー、モデル名、エンドポイントを設定\n3. ページを再読み込み';
+            } else if (error.message.includes('429')) {
+                errorMessage = 'OpenAI APIの利用制限に達しました。\n\n対処法：\n1. https://platform.openai.com/usage で利用状況を確認\n2. 支払い情報を更新するか、別のAPIキーを使用\n3. モデル名を確認（gpt-3.5-turbo または gpt-4o-mini）';
+            } else if (error.message.includes('quota')) {
+                errorMessage = 'APIクォータを超過しました。\n\n対処法：\n1. OpenAIアカウントの支払い設定を確認\n2. 無料枠を使い切った可能性があります\n3. README_ALTERNATIVES.mdで代替案を確認';
             }
             
             this.addMessage(errorMessage, 'bot');
