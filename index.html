@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>チラシ作成AIアシスタント</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>チラシ作成AIアシスタント</h1>
+            <p class="subtitle">質問に答えるだけで、最適なチラシ案を作成します</p>
+        </div>
+        
+        <div class="chat-container">
+            <div id="chat-messages" class="chat-messages">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        こんにちは！チラシ作成をお手伝いします。<br>
+                        これから8つの質問をさせていただきます。<br><br>
+                        💡 ヒント: 分からない時は「分からない」と答えてください。<br>
+                        私がアドバイスや具体例をご提示します。<br><br>
+                        準備ができたら「開始」と入力してください。
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-container">
+                <input type="text" id="user-input" class="user-input" placeholder="メッセージを入力..." autofocus>
+                <button id="send-button" class="send-button">送信</button>
+            </div>
+        </div>
+        
+        <div id="download-container" class="download-container" style="display: none;">
+            <button id="download-button" class="download-button">チラシ案をダウンロード</button>
+            <button id="restart-button" class="restart-button">最初からやり直す</button>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
