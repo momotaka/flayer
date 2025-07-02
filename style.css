@@ -15,19 +15,21 @@ body {
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .header {
     text-align: center;
-    margin-bottom: 30px;
-    padding: 20px;
+    margin-bottom: 20px;
+    padding: 15px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
 }
 
 .header h1 {
@@ -41,20 +43,24 @@ body {
 }
 
 .question-area {
-    background: #f8f9fa;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    position: sticky;
-    top: 0;
-    z-index: 50;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+}
+
+.question-label {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 8px;
 }
 
 .current-question {
-    font-size: 16px;
-    font-weight: 500;
-    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
     line-height: 1.6;
 }
 
@@ -67,7 +73,7 @@ body {
     flex-direction: column;
     overflow: hidden;
     position: relative;
-    height: calc(100vh - 280px);
+    min-height: 0;
 }
 
 .chat-messages {
@@ -117,17 +123,11 @@ body {
 }
 
 .input-container {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
     display: flex;
     padding: 15px;
     border-top: 1px solid #e0e0e0;
     background-color: #fafafa;
-    z-index: 100;
-    max-width: 800px;
-    margin: 0 auto;
+    flex-shrink: 0;
 }
 
 .user-input {
@@ -164,9 +164,60 @@ body {
     transform: scale(0.98);
 }
 
+.send-button:disabled {
+    background-color: #a0a0a0;
+    cursor: not-allowed;
+}
+
+/* ローディングアニメーション */
+.thinking-indicator {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #f0f0f0;
+    border-radius: 18px;
+    margin-bottom: 20px;
+}
+
+.thinking-dots {
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
+}
+
+.thinking-dots span {
+    width: 8px;
+    height: 8px;
+    background-color: #667eea;
+    border-radius: 50%;
+    animation: thinking 1.4s ease-in-out infinite;
+}
+
+.thinking-dots span:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.thinking-dots span:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes thinking {
+    0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 .download-container {
-    margin-top: 20px;
+    padding: 20px;
     text-align: center;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    margin-top: 20px;
 }
 
 .download-button,

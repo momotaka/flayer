@@ -3,13 +3,13 @@ class FlyerChatBot {
         this.questions = [
             {
                 id: 'overview',
-                text: '【まずはじめに】\n\nどんなサービス・商品のチラシを作りたいですか？\n簡単で構いませんので教えてください。',
+                text: '【1/8 サービス概要】\n\nどんなサービス・商品のチラシを作りたいですか？\n簡単で構いませんので教えてください。',
                 key: 'サービス概要',
                 isInitial: true
             },
             {
                 id: 'purpose',
-                text: '【1/7 目的】\n\nこのチラシで何を達成したいですか？\n例：問い合わせ、申込、来店など',
+                text: '【2/8 目的】\n\nこのチラシで何を達成したいですか？\n例：問い合わせ、申込、来店など',
                 key: '目的・ゴール',
                 subQuestions: [
                     'チラシを見た人にどんな行動をしてほしいですか？'
@@ -17,7 +17,7 @@ class FlyerChatBot {
             },
             {
                 id: 'target',
-                text: '【2/7 ターゲット】\n\n誰に向けたチラシにしますか？\n例：30代主婦、中小企業の経営者など',
+                text: '【3/8 ターゲット】\n\n誰に向けたチラシにしますか？\n例：30代主婦、中小企業の経営者など',
                 key: 'ターゲット',
                 subQuestions: [
                     'その方々はどんな悩みを抱えていると思いますか？'
@@ -25,7 +25,7 @@ class FlyerChatBot {
             },
             {
                 id: 'service_detail',
-                text: '【3/7 詳細】\n\nさらに詳しく教えてください。',
+                text: '【4/8 詳細】\n\nさらに詳しく教えてください。',
                 key: '商品・サービス詳細',
                 isDynamic: true,
                 subQuestions: [
@@ -35,7 +35,7 @@ class FlyerChatBot {
             },
             {
                 id: 'pricing',
-                text: '【4/7 料金】\n\n価格や料金プランを教えてください。',
+                text: '【5/8 料金】\n\n価格や料金プランを教えてください。',
                 key: '料金・提供条件',
                 subQuestions: [
                     '購入・利用の流れはどうなりますか？'
@@ -43,7 +43,7 @@ class FlyerChatBot {
             },
             {
                 id: 'trust',
-                text: '【5/7 実績】\n\n実績や数字はありますか？\n例：創業10年、導入500社など',
+                text: '【6/8 実績】\n\n実績や数字はありますか？\n例：創業10年、導入500社など',
                 key: '信頼性・実績',
                 subQuestions: [
                     'お客様の声や成功事例はありますか？'
@@ -51,12 +51,12 @@ class FlyerChatBot {
             },
             {
                 id: 'cta',
-                text: '【6/7 連絡先】\n\n連絡方法を教えてください。\n例：電話番号、メール、LINEなど',
+                text: '【7/8 連絡先】\n\n連絡方法を教えてください。\n例：電話番号、メール、LINEなど',
                 key: '連絡先・申込方法'
             },
             {
                 id: 'design',
-                text: '【7/7 デザイン】\n\nどんな印象のチラシにしたいですか？\n例：親しみやすい、高級感など',
+                text: '【8/8 デザイン】\n\nどんな印象のチラシにしたいですか？\n例：親しみやすい、高級感など',
                 key: 'デザイン・雰囲気',
                 subQuestions: [
                     '強調したいキーワードはありますか？'
@@ -114,6 +114,7 @@ class FlyerChatBot {
     
     displayQuestion(questionText) {
         this.currentQuestionEl.innerHTML = questionText.replace(/\n/g, '<br>');
+        console.log('質問を表示:', questionText);
     }
     
     async handleUserInput() {
@@ -128,8 +129,35 @@ class FlyerChatBot {
         await this.sendToAI(input);
     }
     
+    showThinkingIndicator() {
+        const thinkingDiv = document.createElement('div');
+        thinkingDiv.className = 'message bot-message';
+        thinkingDiv.id = 'thinking-indicator';
+        thinkingDiv.innerHTML = `
+            <div class="thinking-indicator">
+                <span>AIが考え中です</span>
+                <div class="thinking-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        `;
+        this.chatMessages.appendChild(thinkingDiv);
+        this.scrollToBottom();
+    }
+    
+    hideThinkingIndicator() {
+        const indicator = document.getElementById('thinking-indicator');
+        if (indicator) {
+            indicator.remove();
+        }
+    }
+    
     async sendToAI(message, isStart = false) {
         try {
+            // 考え中表示を追加
+            this.showThinkingIndicator();
             const context = {
                 currentQuestionIndex: this.currentQuestionIndex,
                 answers: this.answers,
@@ -156,6 +184,9 @@ class FlyerChatBot {
             
             const data = await response.json();
             
+            // 考え中表示を削除
+            this.hideThinkingIndicator();
+            
             if (data.error) {
                 // デバッグ情報を含むエラー
                 let errorMsg = data.error;
@@ -178,31 +209,41 @@ class FlyerChatBot {
                     
                     // AIの応答を待って、次の質問に進むかどうか判断
                     setTimeout(() => {
-                        // ユーザーが「次へ」「OK」「はい」などの肯定的な返答をした場合、次の質問へ
-                        if (data.response.includes('次の質問') || 
+                        // AIの応答に基づいて次の質問へ進む
+                        const shouldProceed = data.response.includes('次の質問') || 
                             data.response.includes('それでは次') || 
                             data.response.includes('承知しました') ||
-                            data.response.includes('理解しました')) {
+                            data.response.includes('理解しました') ||
+                            data.response.includes('ありがとうございます');
+                            
+                        if (shouldProceed) {
                             this.currentQuestionIndex++;
+                            console.log('次の質問へ進む: ', this.currentQuestionIndex);
+                            
                             if (this.currentQuestionIndex < this.questions.length) {
                                 const nextQuestion = this.questions[this.currentQuestionIndex];
                                 setTimeout(() => {
                                     // 動的な質問の場合、サービスに合わせてカスタマイズ
                                     if (nextQuestion.isDynamic && this.answers['サービス概要']) {
                                         const serviceInfo = this.answers['サービス概要'];
-                                        this.displayQuestion(`【3/7 詳細】\n\n${serviceInfo}についてさらに詳しく教えてください。`);
+                                        const customQuestion = `【3/7 詳細】\n\n${serviceInfo}についてさらに詳しく教えてください。`;
+                                        this.displayQuestion(customQuestion);
+                                        console.log('カスタム質問を表示:', customQuestion);
                                     } else {
                                         this.displayQuestion(nextQuestion.text);
+                                        console.log('通常の質問を表示:', nextQuestion.text);
                                     }
                                     this.isProcessing = false;
                                     this.toggleInput(true);
                                 }, 1000);
                             } else {
                                 // 全質問終了
+                                console.log('全質問終了、チラシ生成へ');
                                 this.generateFlyer();
                             }
                         } else {
                             // 追加の質問や確認がある場合は、そのまま会話を継続
+                            console.log('会話を継続');
                             this.isProcessing = false;
                             this.toggleInput(true);
                         }
@@ -214,6 +255,9 @@ class FlyerChatBot {
             }
             
         } catch (error) {
+            // エラー時も考え中表示を削除
+            this.hideThinkingIndicator();
+            
             console.error('AI通信エラー:', error);
             let errorMessage = 'エラーが発生しました: ' + error.message;
             
