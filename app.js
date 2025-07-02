@@ -2,8 +2,14 @@ class FlyerChatBot {
     constructor() {
         this.questions = [
             {
+                id: 'overview',
+                text: '【まずはじめに】\n\nどんなサービス・商品のチラシを作りたいですか？\n簡単で構いませんので教えてください。',
+                key: 'サービス概要',
+                isInitial: true
+            },
+            {
                 id: 'purpose',
-                text: '【1/8 目的】\n\nこのチラシで何を達成したいですか？\n例：問い合わせ、申込、来店など',
+                text: '【1/7 目的】\n\nこのチラシで何を達成したいですか？\n例：問い合わせ、申込、来店など',
                 key: '目的・ゴール',
                 subQuestions: [
                     'チラシを見た人にどんな行動をしてほしいですか？'
@@ -11,25 +17,25 @@ class FlyerChatBot {
             },
             {
                 id: 'target',
-                text: '【2/8 ターゲット】\n\n想定している顧客像を教えてください。\n例：30代主婦、中小企業の経営者など',
+                text: '【2/7 ターゲット】\n\n誰に向けたチラシにしますか？\n例：30代主婦、中小企業の経営者など',
                 key: 'ターゲット',
                 subQuestions: [
                     'その方々はどんな悩みを抱えていると思いますか？'
                 ]
             },
             {
-                id: 'service',
-                text: '【3/8 商品・サービス】\n\n提供する商品・サービスの名称は？',
-                key: '商品・サービス内容',
+                id: 'service_detail',
+                text: '【3/7 詳細】\n\nさらに詳しく教えてください。',
+                key: '商品・サービス詳細',
+                isDynamic: true,
                 subQuestions: [
-                    'どんな内容か簡単に説明してください',
                     'どんな悩みを解決できますか？',
                     '他社と比べた強みは何ですか？'
                 ]
             },
             {
                 id: 'pricing',
-                text: '【4/8 料金】\n\n価格や料金プランを教えてください。',
+                text: '【4/7 料金】\n\n価格や料金プランを教えてください。',
                 key: '料金・提供条件',
                 subQuestions: [
                     '購入・利用の流れはどうなりますか？'
@@ -37,7 +43,7 @@ class FlyerChatBot {
             },
             {
                 id: 'trust',
-                text: '【5/8 実績】\n\n実績や数字はありますか？\n例：創業10年、導入500社など',
+                text: '【5/7 実績】\n\n実績や数字はありますか？\n例：創業10年、導入500社など',
                 key: '信頼性・実績',
                 subQuestions: [
                     'お客様の声や成功事例はありますか？'
@@ -45,21 +51,16 @@ class FlyerChatBot {
             },
             {
                 id: 'cta',
-                text: '【6/8 連絡先】\n\n連絡方法を教えてください。\n例：電話番号、メール、LINEなど',
+                text: '【6/7 連絡先】\n\n連絡方法を教えてください。\n例：電話番号、メール、LINEなど',
                 key: '連絡先・申込方法'
             },
             {
                 id: 'design',
-                text: '【7/8 デザイン】\n\nどんな印象のチラシにしたいですか？\n例：親しみやすい、高級感など',
+                text: '【7/7 デザイン】\n\nどんな印象のチラシにしたいですか？\n例：親しみやすい、高級感など',
                 key: 'デザイン・雰囲気',
                 subQuestions: [
                     '強調したいキーワードはありますか？'
                 ]
-            },
-            {
-                id: 'event',
-                text: '【8/8 イベント】\n\nPRイベントの予定はありますか？\n（なければ「なし」）',
-                key: 'イベント情報'
             }
         ];
         
@@ -125,7 +126,8 @@ class FlyerChatBot {
                 answers: this.answers,
                 questions: this.questions,
                 isStart: isStart,
-                allQuestionsAnswered: this.currentQuestionIndex >= this.questions.length - 1
+                allQuestionsAnswered: this.currentQuestionIndex >= this.questions.length - 1,
+                serviceOverview: this.answers['サービス概要'] || null
             };
             
             const response = await fetch('chat.php', {
@@ -157,7 +159,13 @@ class FlyerChatBot {
                 if (this.currentQuestionIndex < this.questions.length) {
                     const question = this.questions[this.currentQuestionIndex];
                     setTimeout(() => {
-                        this.addMessage(question.text, 'bot');
+                        // 動的な質問の場合、サービスに合わせてカスタマイズ
+                        if (question.isDynamic && this.answers['サービス概要']) {
+                            const serviceInfo = this.answers['サービス概要'];
+                            this.addMessage(`【3/7 詳細】\n\n${serviceInfo}についてさらに詳しく教えてください。`, 'bot');
+                        } else {
+                            this.addMessage(question.text, 'bot');
+                        }
                         this.isProcessing = false;
                         this.toggleInput(true);
                     }, 1000);
@@ -179,7 +187,13 @@ class FlyerChatBot {
                             if (this.currentQuestionIndex < this.questions.length) {
                                 const nextQuestion = this.questions[this.currentQuestionIndex];
                                 setTimeout(() => {
-                                    this.addMessage(nextQuestion.text, 'bot');
+                                    // 動的な質問の場合、サービスに合わせてカスタマイズ
+                                    if (nextQuestion.isDynamic && this.answers['サービス概要']) {
+                                        const serviceInfo = this.answers['サービス概要'];
+                                        this.addMessage(`【3/7 詳細】\n\n${serviceInfo}についてさらに詳しく教えてください。`, 'bot');
+                                    } else {
+                                        this.addMessage(nextQuestion.text, 'bot');
+                                    }
                                     this.isProcessing = false;
                                     this.toggleInput(true);
                                 }, 1000);
@@ -412,8 +426,11 @@ class FlyerChatBot {
         this.chatMessages.innerHTML = `
             <div class="message bot-message">
                 <div class="message-content">
-                    こんにちは！チラシ作成をお手伝いします。<br>
-                    これから8つの質問をさせていただきます。<br>
+                    こんにちは！チラシ作成をお手伝いします。<br><br>
+                    まずはどんなサービス・商品のチラシを作りたいか教えていただき、<br>
+                    それに合わせた質問をさせていただきます。<br><br>
+                    💡 ヒント: 分からない時は「分からない」と答えてください。<br>
+                    私がアドバイスや具体例をご提示します。<br><br>
                     準備ができたら「開始」と入力してください。
                 </div>
             </div>
