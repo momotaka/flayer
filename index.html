@@ -13,16 +13,28 @@
             <p class="subtitle">質問に答えるだけで、最適なチラシ案を作成します</p>
         </div>
         
-        <div id="question-area" class="question-area" style="display: none;">
-            <div class="question-label">現在の質問：</div>
-            <div id="current-question" class="current-question"></div>
-        </div>
-        
-        <div class="chat-container">
-            <div id="chat-messages" class="chat-messages"></div>
+        <div class="main-container">
+            <div id="question-area" class="question-area" style="display: none;">
+                <div id="current-question" class="current-question"></div>
+            </div>
+            
+            <div id="answer-area" class="answer-area" style="display: none;">
+                <div id="ai-response" class="ai-response"></div>
+            </div>
+            
+            <div id="thinking-area" class="thinking-area" style="display: none;">
+                <div class="thinking-indicator">
+                    <span>AIが考え中です</span>
+                    <div class="thinking-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
             
             <div class="input-container">
-                <input type="text" id="user-input" class="user-input" placeholder="メッセージを入力..." autofocus>
+                <input type="text" id="user-input" class="user-input" placeholder="回答を入力..." autofocus>
                 <button id="send-button" class="send-button">送信</button>
             </div>
         </div>

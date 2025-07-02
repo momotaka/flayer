@@ -82,7 +82,6 @@ class FlyerChatBot {
     }
     
     initializeElements() {
-        this.chatMessages = document.getElementById('chat-messages');
         this.userInput = document.getElementById('user-input');
         this.sendButton = document.getElementById('send-button');
         this.downloadContainer = document.getElementById('download-container');
@@ -90,6 +89,9 @@ class FlyerChatBot {
         this.restartButton = document.getElementById('restart-button');
         this.questionArea = document.getElementById('question-area');
         this.currentQuestionEl = document.getElementById('current-question');
+        this.answerArea = document.getElementById('answer-area');
+        this.aiResponseEl = document.getElementById('ai-response');
+        this.thinkingArea = document.getElementById('thinking-area');
     }
     
     setupEventListeners() {
@@ -109,7 +111,6 @@ class FlyerChatBot {
         const firstQuestion = this.questions[0];
         this.displayQuestion(firstQuestion.text);
         this.questionArea.style.display = 'block';
-        this.addMessage('チラシ作成を開始します。質問に答えていきましょう！', 'bot');
     }
     
     displayQuestion(questionText) {
@@ -121,37 +122,22 @@ class FlyerChatBot {
         const input = this.userInput.value.trim();
         if (!input || this.isProcessing) return;
         
-        this.addMessage(input, 'user');
         this.userInput.value = '';
         this.isProcessing = true;
         this.toggleInput(false);
+        
+        // 回答エリアをクリア
+        this.answerArea.style.display = 'none';
         
         await this.sendToAI(input);
     }
     
     showThinkingIndicator() {
-        const thinkingDiv = document.createElement('div');
-        thinkingDiv.className = 'message bot-message';
-        thinkingDiv.id = 'thinking-indicator';
-        thinkingDiv.innerHTML = `
-            <div class="thinking-indicator">
-                <span>AIが考え中です</span>
-                <div class="thinking-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-        `;
-        this.chatMessages.appendChild(thinkingDiv);
-        this.scrollToBottom();
+        this.thinkingArea.style.display = 'flex';
     }
     
     hideThinkingIndicator() {
-        const indicator = document.getElementById('thinking-indicator');
-        if (indicator) {
-            indicator.remove();
-        }
+        this.thinkingArea.style.display = 'none';
     }
     
     async sendToAI(message, isStart = false) {
@@ -196,7 +182,9 @@ class FlyerChatBot {
                 throw new Error(errorMsg);
             }
             
-            this.addMessage(data.response, 'bot');
+            // AIの応答を表示
+            this.aiResponseEl.innerHTML = data.response.replace(/\n/g, '<br>');
+            this.answerArea.style.display = 'block';
             
             // AIの応答に基づいて質問の進行を管理
             if (false) { // isStartは不要になったため
@@ -207,47 +195,33 @@ class FlyerChatBot {
                     const currentQuestion = this.questions[this.currentQuestionIndex];
                     this.answers[currentQuestion.key] = message;
                     
-                    // AIの応答を待って、次の質問に進むかどうか判断
-                    setTimeout(() => {
-                        // AIの応答に基づいて次の質問へ進む
-                        const shouldProceed = data.response.includes('次の質問') || 
-                            data.response.includes('それでは次') || 
-                            data.response.includes('承知しました') ||
-                            data.response.includes('理解しました') ||
-                            data.response.includes('ありがとうございます');
-                            
-                        if (shouldProceed) {
-                            this.currentQuestionIndex++;
-                            console.log('次の質問へ進む: ', this.currentQuestionIndex);
-                            
-                            if (this.currentQuestionIndex < this.questions.length) {
-                                const nextQuestion = this.questions[this.currentQuestionIndex];
-                                setTimeout(() => {
-                                    // 動的な質問の場合、サービスに合わせてカスタマイズ
-                                    if (nextQuestion.isDynamic && this.answers['サービス概要']) {
-                                        const serviceInfo = this.answers['サービス概要'];
-                                        const customQuestion = `【3/7 詳細】\n\n${serviceInfo}についてさらに詳しく教えてください。`;
-                                        this.displayQuestion(customQuestion);
-                                        console.log('カスタム質問を表示:', customQuestion);
-                                    } else {
-                                        this.displayQuestion(nextQuestion.text);
-                                        console.log('通常の質問を表示:', nextQuestion.text);
-                                    }
-                                    this.isProcessing = false;
-                                    this.toggleInput(true);
-                                }, 1000);
+                    // 常に次の質問へ進む（AIは確認と補足のみ）
+                    this.currentQuestionIndex++;
+                    console.log('次の質問へ進む: ', this.currentQuestionIndex);
+                    
+                    if (this.currentQuestionIndex < this.questions.length) {
+                        const nextQuestion = this.questions[this.currentQuestionIndex];
+                        setTimeout(() => {
+                            // 動的な質問の場合、サービスに合わせてカスタマイズ
+                            if (nextQuestion.isDynamic && this.answers['サービス概要']) {
+                                const serviceInfo = this.answers['サービス概要'];
+                                const customQuestion = `【4/8 詳細】\n\n${serviceInfo}についてさらに詳しく教えてください。`;
+                                this.displayQuestion(customQuestion);
+                                console.log('カスタム質問を表示:', customQuestion);
                             } else {
-                                // 全質問終了
-                                console.log('全質問終了、チラシ生成へ');
-                                this.generateFlyer();
+                                this.displayQuestion(nextQuestion.text);
+                                console.log('通常の質問を表示:', nextQuestion.text);
                             }
-                        } else {
-                            // 追加の質問や確認がある場合は、そのまま会話を継続
-                            console.log('会話を継続');
                             this.isProcessing = false;
                             this.toggleInput(true);
-                        }
-                    }, 500);
+                        }, 1000);
+                    } else {
+                        // 全質問終了
+                        console.log('全質問終了、チラシ生成へ');
+                        setTimeout(() => {
+                            this.generateFlyer();
+                        }, 1000);
+                    }
                 } else {
                     this.isProcessing = false;
                     this.toggleInput(true);
@@ -270,7 +244,8 @@ class FlyerChatBot {
                 errorMessage = 'APIクォータを超過しました。\n\n対処法：\n1. OpenAIアカウントの支払い設定を確認\n2. 無料枠を使い切った可能性があります\n3. README_ALTERNATIVES.mdで代替案を確認';
             }
             
-            this.addMessage(errorMessage, 'bot');
+            this.aiResponseEl.innerHTML = errorMessage.replace(/\n/g, '<br>');
+            this.answerArea.style.display = 'block';
             this.isProcessing = false;
             this.toggleInput(true);
         }
@@ -293,7 +268,8 @@ class FlyerChatBot {
     
     async generateFlyer() {
         this.questionArea.style.display = 'none';
-        this.addMessage('回答ありがとうございました！AIがチラシ案を生成しています...', 'bot');
+        this.answerArea.style.display = 'none';
+        this.showThinkingIndicator();
         
         try {
             const finalContext = {
@@ -329,17 +305,19 @@ class FlyerChatBot {
                 throw new Error(errorMsg);
             }
             
-            this.addMessage('チラシ案が完成しました！', 'bot');
-            this.addMessage(data.response, 'bot', 'flyer-content');
+            this.hideThinkingIndicator();
+            this.aiResponseEl.innerHTML = `<h2>チラシ案が完成しました！</h2><br><div class="flyer-content">${data.response.replace(/\n/g, '<br>')}</div>`;
+            this.answerArea.style.display = 'block';
             this.flyerContent = data.response;
             this.showDownloadOptions();
             
         } catch (error) {
             console.error('チラシ生成エラー:', error);
-            this.addMessage('チラシ生成中にエラーが発生しました。', 'bot');
+            this.hideThinkingIndicator();
             // フォールバックとして従来の生成方法を使用
             const flyerContent = this.createFlyerContent();
-            this.addMessage(flyerContent, 'bot', 'flyer-content');
+            this.aiResponseEl.innerHTML = `<h2>チラシ案</h2><br><div class="flyer-content">${flyerContent.replace(/\n/g, '<br>')}</div>`;
+            this.answerArea.style.display = 'block';
             this.flyerContent = flyerContent;
             this.showDownloadOptions();
         }
@@ -433,22 +411,7 @@ class FlyerChatBot {
         return '- ターゲットに合わせた配色とレイアウト\n- 読みやすさを重視したフォント選び';
     }
     
-    addMessage(text, sender, additionalClass = '') {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${sender}-message`;
-        
-        const contentDiv = document.createElement('div');
-        contentDiv.className = `message-content ${additionalClass}`;
-        contentDiv.innerHTML = text.replace(/\n/g, '<br>');
-        
-        messageDiv.appendChild(contentDiv);
-        this.chatMessages.appendChild(messageDiv);
-        this.scrollToBottom();
-    }
-    
-    scrollToBottom() {
-        this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
-    }
+    // チャット関連のメソッドは不要なので削除
     
     downloadFlyer() {
         const flyerContent = this.flyerContent || this.createFlyerContent();
@@ -484,7 +447,8 @@ class FlyerChatBot {
         this.isProcessing = false;
         this.flyerContent = null;
         this.conversationHistory = [];
-        this.chatMessages.innerHTML = '';
+        this.aiResponseEl.innerHTML = '';
+        this.answerArea.style.display = 'none';
         this.downloadContainer.style.display = 'none';
         this.questionArea.style.display = 'none';
         this.toggleInput(true);
