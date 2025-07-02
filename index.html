@@ -13,19 +13,12 @@
             <p class="subtitle">質問に答えるだけで、最適なチラシ案を作成します</p>
         </div>
         
+        <div id="question-area" class="question-area" style="display: none;">
+            <div id="current-question" class="current-question"></div>
+        </div>
+        
         <div class="chat-container">
-            <div id="chat-messages" class="chat-messages">
-                <div class="message bot-message">
-                    <div class="message-content">
-                        こんにちは！チラシ作成をお手伝いします。<br><br>
-                        まずはどんなサービス・商品のチラシを作りたいか教えていただき、<br>
-                        それに合わせた質問をさせていただきます。<br><br>
-                        💡 ヒント: 分からない時は「分からない」と答えてください。<br>
-                        私がアドバイスや具体例をご提示します。<br><br>
-                        準備ができたら「開始」と入力してください。
-                    </div>
-                </div>
-            </div>
+            <div id="chat-messages" class="chat-messages"></div>
             
             <div class="input-container">
                 <input type="text" id="user-input" class="user-input" placeholder="メッセージを入力..." autofocus>

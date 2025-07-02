@@ -74,6 +74,11 @@ class FlyerChatBot {
         
         this.initializeElements();
         this.setupEventListeners();
+        
+        // 自動で最初の質問を表示
+        setTimeout(() => {
+            this.showFirstQuestion();
+        }, 500);
     }
     
     initializeElements() {
@@ -83,6 +88,8 @@ class FlyerChatBot {
         this.downloadContainer = document.getElementById('download-container');
         this.downloadButton = document.getElementById('download-button');
         this.restartButton = document.getElementById('restart-button');
+        this.questionArea = document.getElementById('question-area');
+        this.currentQuestionEl = document.getElementById('current-question');
     }
     
     setupEventListeners() {
@@ -96,6 +103,19 @@ class FlyerChatBot {
         this.restartButton.addEventListener('click', () => this.restart());
     }
     
+    showFirstQuestion() {
+        this.started = true;
+        this.currentQuestionIndex = 0;
+        const firstQuestion = this.questions[0];
+        this.displayQuestion(firstQuestion.text);
+        this.questionArea.style.display = 'block';
+        this.addMessage('チラシ作成を開始します。質問に答えていきましょう！', 'bot');
+    }
+    
+    displayQuestion(questionText) {
+        this.currentQuestionEl.innerHTML = questionText.replace(/\n/g, '<br>');
+    }
+    
     async handleUserInput() {
         const input = this.userInput.value.trim();
         if (!input || this.isProcessing) return;
@@ -105,18 +125,7 @@ class FlyerChatBot {
         this.isProcessing = true;
         this.toggleInput(false);
         
-        if (!this.started) {
-            if (input.toLowerCase().includes('開始')) {
-                this.started = true;
-                await this.sendToAI('開始', true);
-            } else {
-                this.addMessage('チラシ作成を開始するには「開始」と入力してください。', 'bot');
-                this.isProcessing = false;
-                this.toggleInput(true);
-            }
-        } else {
-            await this.sendToAI(input);
-        }
+        await this.sendToAI(input);
     }
     
     async sendToAI(message, isStart = false) {
@@ -154,22 +163,8 @@ class FlyerChatBot {
             this.addMessage(data.response, 'bot');
             
             // AIの応答に基づいて質問の進行を管理
-            if (isStart) {
-                this.currentQuestionIndex++;
-                if (this.currentQuestionIndex < this.questions.length) {
-                    const question = this.questions[this.currentQuestionIndex];
-                    setTimeout(() => {
-                        // 動的な質問の場合、サービスに合わせてカスタマイズ
-                        if (question.isDynamic && this.answers['サービス概要']) {
-                            const serviceInfo = this.answers['サービス概要'];
-                            this.addMessage(`【3/7 詳細】\n\n${serviceInfo}についてさらに詳しく教えてください。`, 'bot');
-                        } else {
-                            this.addMessage(question.text, 'bot');
-                        }
-                        this.isProcessing = false;
-                        this.toggleInput(true);
-                    }, 1000);
-                }
+            if (false) { // isStartは不要になったため
+                // この部分は使用しない
             } else {
                 // ユーザーの回答を保存
                 if (this.currentQuestionIndex >= 0 && this.currentQuestionIndex < this.questions.length) {
@@ -190,9 +185,9 @@ class FlyerChatBot {
                                     // 動的な質問の場合、サービスに合わせてカスタマイズ
                                     if (nextQuestion.isDynamic && this.answers['サービス概要']) {
                                         const serviceInfo = this.answers['サービス概要'];
-                                        this.addMessage(`【3/7 詳細】\n\n${serviceInfo}についてさらに詳しく教えてください。`, 'bot');
+                                        this.displayQuestion(`【3/7 詳細】\n\n${serviceInfo}についてさらに詳しく教えてください。`);
                                     } else {
-                                        this.addMessage(nextQuestion.text, 'bot');
+                                        this.displayQuestion(nextQuestion.text);
                                     }
                                     this.isProcessing = false;
                                     this.toggleInput(true);
@@ -237,6 +232,7 @@ class FlyerChatBot {
     }
     
     async generateFlyer() {
+        this.questionArea.style.display = 'none';
         this.addMessage('回答ありがとうございました！AIがチラシ案を生成しています...', 'bot');
         
         try {
@@ -423,20 +419,15 @@ class FlyerChatBot {
         this.isProcessing = false;
         this.flyerContent = null;
         this.conversationHistory = [];
-        this.chatMessages.innerHTML = `
-            <div class="message bot-message">
-                <div class="message-content">
-                    こんにちは！チラシ作成をお手伝いします。<br><br>
-                    まずはどんなサービス・商品のチラシを作りたいか教えていただき、<br>
-                    それに合わせた質問をさせていただきます。<br><br>
-                    💡 ヒント: 分からない時は「分からない」と答えてください。<br>
-                    私がアドバイスや具体例をご提示します。<br><br>
-                    準備ができたら「開始」と入力してください。
-                </div>
-            </div>
-        `;
+        this.chatMessages.innerHTML = '';
         this.downloadContainer.style.display = 'none';
+        this.questionArea.style.display = 'none';
         this.toggleInput(true);
+        
+        // 自動で最初の質問を表示
+        setTimeout(() => {
+            this.showFirstQuestion();
+        }, 500);
     }
 }
 
