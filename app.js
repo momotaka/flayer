@@ -157,7 +157,12 @@ class FlyerChatBot {
             const data = await response.json();
             
             if (data.error) {
-                throw new Error(data.error);
+                // デバッグ情報を含むエラー
+                let errorMsg = data.error;
+                if (data.file && data.line) {
+                    console.error(`PHPエラー: ${data.file}:${data.line}`);
+                }
+                throw new Error(errorMsg);
             }
             
             this.addMessage(data.response, 'bot');
@@ -268,7 +273,12 @@ class FlyerChatBot {
             const data = await response.json();
             
             if (data.error) {
-                throw new Error(data.error);
+                // デバッグ情報を含むエラー
+                let errorMsg = data.error;
+                if (data.file && data.line) {
+                    console.error(`PHPエラー: ${data.file}:${data.line}`);
+                }
+                throw new Error(errorMsg);
             }
             
             this.addMessage('チラシ案が完成しました！', 'bot');

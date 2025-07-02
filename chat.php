@@ -1,21 +1,39 @@
 <?php
+// エラー報告を有効化（開発環境用）
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
 header('Content-Type: application/json; charset=UTF-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
+// エラーハンドラー
+set_error_handler(function($severity, $message, $file, $line) {
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
+
 // エラーハンドリング
 try {
     // .envファイルの存在確認
-    if (!file_exists('.env')) {
+    if (!file_exists(__DIR__ . '/.env')) {
         throw new Exception('.envファイルが見つかりません。.env.exampleをコピーして.envを作成し、APIキーを設定してください。');
     }
     
     // 設定を読み込む
-    $config = require 'config.php';
+    $config = require __DIR__ . '/config.php';
+    
+    if (!$config || !is_array($config)) {
+        throw new Exception('設定の読み込みに失敗しました。');
+    }
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+    echo json_encode([
+        'error' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+    ]);
     exit;
 }
 

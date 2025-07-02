@@ -1,6 +1,10 @@
 <?php
 // .envファイルから環境変数を読み込む
-function loadEnv($path = '.env') {
+function loadEnv($path = null) {
+    if ($path === null) {
+        $path = __DIR__ . '/.env';
+    }
+    
     if (!file_exists($path)) {
         throw new Exception('.envファイルが見つかりません。.env.exampleをコピーして.envを作成してください。');
     }
